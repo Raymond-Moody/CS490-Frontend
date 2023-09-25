@@ -3,15 +3,17 @@ import axios from 'axios';
 import { ErrorContext } from './ErrorContext';
 
 export default function Customers(){
+    const baseUrl = "http://localhost:8000/customers/"; 
     const [tableCount, setTableCount] = React.useState({start: 1, end: 15});
     const [searchResult, setSearchResult] = React.useState({results: []});
     const [selectedCustomer, setSelectedCustomer] = React.useState(null);
     const [firstName, setFirstName] = React.useState("");
     const [lastName, setLastName] = React.useState("");
     const [custID, setCustID] = React.useState(0);
+    const [url, setUrl] = React.useState(baseUrl);
     const setError = React.useContext(ErrorContext);
-    const baseUrl = "http://localhost:8000/customers/"; 
 
+    /*
     function axiosQuery(url){
         setError(null);
         axios
@@ -22,31 +24,32 @@ export default function Customers(){
             .catch(err => setError(err));
         //console.log(searchResult);
     }
+    */
 
     function changePage(dir){
-        let url = dir === "next" ? searchResult['next'] : searchResult['previous'];
-        let offset = parseInt(url.substring(url.indexOf("offset") + 7)) || 0;
+        let pageUrl = dir === "next" ? searchResult['next'] : searchResult['previous'];
+        let offset = parseInt(pageUrl.substring(pageUrl.indexOf("offset") + 7)) || 0;
         setTableCount({
             start: offset + 1,
             end: Math.min(searchResult['count'], offset + 15)
         })
-        axiosQuery(url);
+        setUrl(pageUrl);
     }
 
     function handleSubmit(event){
         event.preventDefault();
         setSelectedCustomer(null);
-        let url = baseUrl.concat("?");
+        let searchUrl = baseUrl.concat("?");
         if(firstName !== ""){
-            url = url.concat(`&first_name=${firstName}`);
+            searchUrl = searchUrl.concat(`&first_name=${firstName}`);
         }
         if(lastName !== ""){
-            url = url.concat(`&last_name=${lastName}`);
+            searchUrl = searchUrl.concat(`&last_name=${lastName}`);
         }
         if(custID !== 0){
-            url = url.concat(`&customer_id=${custID}`);
+            searchUrl = searchUrl.concat(`&customer_id=${custID}`);
         }
-        axiosQuery(url);
+        setUrl(searchUrl)
     }
 
     function handleClick(cust){
@@ -78,9 +81,29 @@ export default function Customers(){
         }
     }
 
+    function createCustomer(event){
+        event.preventDefault();
+        let fname = event.target[0].value
+        let lname = event.target[1].value
+        let email = event.target[2].value
+        let address = event.target[3].value
+        let city = event.target[4].value
+        let country = event.target[5].value
+        if(!fname || !lname || !email || !address || !city || !country){
+            window.alert("Please fill out all fields");
+        }
+        console.log(event);
+        console.log(fname);
+    }
+
     React.useEffect(() => {
-        axiosQuery(baseUrl);
-    }, [])
+        axios
+            .get(url)
+            .then(response => {
+                setSearchResult(response.data)
+            })
+            .catch(err => setError(err));
+    }, [url, setError])
 
     return(
         <div className='content'>
@@ -110,12 +133,38 @@ export default function Customers(){
                 {searchResult['previous'] && <button onClick={() => changePage("prev")}>&lt; Prev</button>}
                 {searchResult['next'] && <button onClick={() => changePage("next")}>Next &gt;</button>}
             </div>
-            {selectedCustomer && <CustomerInfo custData={selectedCustomer}/>}
+            {selectedCustomer && <CustomerInfo custData={selectedCustomer} setSelectedCustomer={setSelectedCustomer} setUrl={setUrl}/>}
+            <br/>
+            <h1>Create New Customer</h1>
+            <form onSubmit={createCustomer}>
+                <table><tbody>
+                    <tr><td>First Name:</td><td><input type='text' style={{backgroundColor : "transparent"}}/></td></tr>
+                    <tr><td>Last Name:</td><td><input type='text' style={{backgroundColor : "transparent"}}/></td></tr>
+                    <tr><td>Email:</td><td><input type='text' style={{backgroundColor : "transparent"}}/></td></tr>
+                    <tr><td>Address:</td><td><input type='text' style={{backgroundColor : "transparent"}}/></td></tr>
+                    <tr><td>City:</td><td><input type='text' style={{backgroundColor : "transparent"}}/></td></tr>
+                    <tr><td>Country:</td><td><input type='text' style={{backgroundColor : "transparent"}}/></td></tr>
+                </tbody></table>
+                <input type='submit' value='Create Customer'/>
+            </form>
         </div>
     );
 }
 
-function CustomerInfo({custData}){
+function CustomerInfo({custData, setSelectedCustomer, setUrl}){
+
+    function deleteCust(){
+        if(window.confirm(`Delete ${custData['first_name']} ${custData['last_name']}?\nThis cannot be undone.`)){
+            console.log("Confirmed");
+            axios
+                .delete(`http://localhost:8000/customers/${custData['customer_id']}`)
+                .then(() => {setSelectedCustomer(null); setUrl("http://localhost:8000/customers")})
+                .catch(err => console.log(err));
+        } else {
+            console.log("Did not delete");
+        }
+    }
+
     return(
         <div style={{display: "inline-block", paddingLeft: "50px"}}>
             <h1>Customer Information</h1>
@@ -123,9 +172,13 @@ function CustomerInfo({custData}){
             <tbody>
                 <tr><td>Name: </td><td>{custData['first_name']} {custData['last_name']}</td></tr>
                 <tr><td>Email: </td><td>{custData['email']}</td></tr>
-                <tr><td>Address: </td><td>{custData['address']}</td></tr>
+                <tr><td>Phone Number: </td><td>{custData['address']['phone']}</td></tr>
+                <tr><td>Address: </td><td>{custData['address']['address']}, {custData['address']['district']}, {custData['address']['postal_code']}</td></tr>
+                <tr><td>City: </td><td>{custData['address']['city']['city']}</td></tr>
+                <tr><td>Country: </td><td>{custData['address']['city']['country']['country']}</td></tr>
             </tbody>
             </table>
+            <button>Edit</button> <button onClick={deleteCust}>Delete</button>
         </div>
     );
 }

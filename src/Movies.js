@@ -4,14 +4,16 @@ import FilmInfo from './FilmInfo';
 import { ErrorContext } from './ErrorContext';
 
 export default function Movies(){
+    const baseUrl = "http://localhost:8000/films/"; 
     const [param, setParam] = React.useState('title'); //title, genre, or actor
     const [queryText, setQueryText] = React.useState('');
     const [searchResult, setSearchResult] = React.useState({results: []});
     const [selectedFilm, setSelectedFilm] = React.useState(null);
     const [tableCount, setTableCount] = React.useState({start: 1, end: 15});
+    const [url, setUrl] = React.useState(baseUrl);
     const setError = React.useContext(ErrorContext);
-    const baseUrl = "http://localhost:8000/films/"; 
 
+    /*
     function axiosQuery(url){
         setError(null);
         axios
@@ -22,6 +24,7 @@ export default function Movies(){
             .catch(err => setError(err));
         //console.log(searchResult);
     }
+    */
 
     function getFilmList(query){
         if(query.trim() !== ""){
@@ -32,11 +35,13 @@ export default function Movies(){
             parameterList.forEach((paramValue) => {
                 urlParams = urlParams.concat(`&${param}=${paramValue}`);
             }); 
-            axiosQuery(baseUrl.concat(urlParams));
+            //axiosQuery(baseUrl.concat(urlParams));
+            setUrl(baseUrl.concat(urlParams));
         }
         else{
             setError(null);
-            axiosQuery(baseUrl);
+            //axiosQuery(baseUrl);
+            setUrl(baseUrl);
         }
     }
 
@@ -62,18 +67,25 @@ export default function Movies(){
     }
 
     function changePage(dir){
-        let url = dir === "next" ? searchResult['next'] : searchResult['previous'];
-        let offset = parseInt(url.substring(url.indexOf("offset") + 7)) || 0;
+        let pageUrl = dir === "next" ? searchResult['next'] : searchResult['previous'];
+        let offset = parseInt(pageUrl.substring(pageUrl.indexOf("offset") + 7)) || 0;
         setTableCount({
             start: offset + 1,
             end: Math.min(searchResult['count'], offset + 15)
         })
-        axiosQuery(url);
+        //axiosQuery(url);
+        setUrl(pageUrl);
     }
 
     React.useEffect(() => {
-        axiosQuery(baseUrl);
-    }, [])
+        setError(null);
+        axios
+            .get(url)
+            .then(response => {
+                setSearchResult(response.data)
+            })
+            .catch(err => setError(err));
+    }, [url, setError])
 
     return(
         <div className='content'>
