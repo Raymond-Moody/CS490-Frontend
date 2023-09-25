@@ -20,7 +20,7 @@ export default function Movies(){
                 setSearchResult(response.data)
             })
             .catch(err => setError(err));
-        console.log(searchResult);
+        //console.log(searchResult);
     }
 
     function getFilmList(query){
@@ -87,10 +87,10 @@ export default function Movies(){
             </div>
             <form onSubmit={handleSubmit}>
                 <input type='text' id='movie_search' placeholder='title1, title2, etc' onChange={handleTextChange}/>
-                <input type='submit' value='Search'></input>
+                <input type='submit' value='Search'/>
             </form>
             <div className="list">
-            {searchResult['count'] ? <h3>{`Results ${tableCount['start']}-${tableCount['end']} of ${searchResult['count']}`}</h3> : <h3>No results</h3>}
+            {searchResult['count'] ? <h3>{`Results ${tableCount['start']}-${Math.min(tableCount['end'], searchResult['count'])} of ${searchResult['count']}`}</h3> : <h3>No results</h3>}
                 <table>
                     <tbody>
                         {

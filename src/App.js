@@ -2,6 +2,7 @@ import React from 'react';
 import Home from './Home';
 import NavBar from './NavBar';
 import Movies from './Movies';
+import Customers from './Customers';
 import {ErrorContext} from './ErrorContext';
 
 
@@ -24,7 +25,7 @@ export default function App(){
             case 'Movies':
                 return <Movies />;
             case 'Customers':
-                return <p>Customer page</p>;
+                return <Customers />;
             case 'Report':
                 return <p>Report page</p>;
             default:
