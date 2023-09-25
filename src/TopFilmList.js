@@ -10,14 +10,6 @@ export default function TopFilmList(){
     const [renderData, setRenderData] = React.useState(false);
     const setError = React.useContext(ErrorContext);
 
-    function getTopFilms(){
-        setError(null);
-        axios
-            .get("http://localhost:8000/films/top")
-            .then(response => setFilmList(response.data))
-            .catch(err => setError(err));
-    }
-
     function getFilmData(film_id){
         setError(null);
         return (
@@ -38,8 +30,12 @@ export default function TopFilmList(){
     }
 
     React.useEffect(() => {
-        getTopFilms();
-    }, []);
+        setError(null);
+        axios
+            .get("http://localhost:8000/films/top")
+            .then(response => setFilmList(response.data))
+            .catch(err => setError(err));
+    }, [setError]);
 
     return(
         <div>

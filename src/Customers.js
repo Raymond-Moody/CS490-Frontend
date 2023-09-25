@@ -13,19 +13,6 @@ export default function Customers(){
     const [url, setUrl] = React.useState(baseUrl);
     const setError = React.useContext(ErrorContext);
 
-    /*
-    function axiosQuery(url){
-        setError(null);
-        axios
-            .get(url)
-            .then(response => {
-                setSearchResult(response.data)
-            })
-            .catch(err => setError(err));
-        //console.log(searchResult);
-    }
-    */
-
     function changePage(dir){
         let pageUrl = dir === "next" ? searchResult['next'] : searchResult['previous'];
         let offset = parseInt(pageUrl.substring(pageUrl.indexOf("offset") + 7)) || 0;
@@ -152,6 +139,7 @@ export default function Customers(){
 }
 
 function CustomerInfo({custData, setSelectedCustomer, setUrl}){
+    const [rentals, setRentals] = React.useState({});
 
     function deleteCust(){
         if(window.confirm(`Delete ${custData['first_name']} ${custData['last_name']}?\nThis cannot be undone.`)){
@@ -165,20 +153,39 @@ function CustomerInfo({custData, setSelectedCustomer, setUrl}){
         }
     }
 
+    function returnFilm(rental_id){
+        let datetime = new Date().toISOString().slice(0, 19).replace('T', ' '); // Get current time as SQL DateTime
+        console.log(`set return_date for ${rental_id} to ${datetime}`);
+    }
+
+    React.useEffect(() => {
+        axios
+            .get(`http://localhost:8000/customers/${custData['customer_id']}/rentals`)
+            .then(response => setRentals(response.data))
+            .catch(err => console.log(err));
+    }, [custData]);
+
     return(
         <div style={{display: "inline-block", paddingLeft: "50px"}}>
             <h1>Customer Information</h1>
-            <table>
-            <tbody>
+            <table><tbody>
                 <tr><td>Name: </td><td>{custData['first_name']} {custData['last_name']}</td></tr>
                 <tr><td>Email: </td><td>{custData['email']}</td></tr>
                 <tr><td>Phone Number: </td><td>{custData['address']['phone']}</td></tr>
                 <tr><td>Address: </td><td>{custData['address']['address']}, {custData['address']['district']}, {custData['address']['postal_code']}</td></tr>
                 <tr><td>City: </td><td>{custData['address']['city']['city']}</td></tr>
                 <tr><td>Country: </td><td>{custData['address']['city']['country']['country']}</td></tr>
-            </tbody>
-            </table>
+            </tbody></table>
             <button>Edit</button> <button onClick={deleteCust}>Delete</button>
+
+            <h2>Rentals</h2>
+            <table><tbody>
+            {rentals.length > 0 && 
+                rentals.map(
+                    rental => <tr key={rental['rental_id']}><td>{rental['inventory']['film']['title']}</td><td><button onClick={() => returnFilm(rental['rental_id'])}>Return</button></td></tr>
+                )
+            }
+            </tbody></table>
         </div>
     );
 }
