@@ -1,6 +1,8 @@
-.selected {
-    background-color: yellow;
+.list{
+    display: inline-block;
+    vertical-align: top;
 }
+
 
 .navHeader {
     background-color: orangered;
@@ -32,4 +34,29 @@ nav>p {
 
 li, td {
     padding-bottom: 10px;
+}
+
+#param_select{
+    font-size: 18px;
+}
+
+#search_header{
+    padding-bottom: 25px;
+}
+
+#movie_search{
+    height: 15px;
+    margin-right: 5px;
+}
+
+tr:nth-child(even){
+    background-color: lightgray;
+}
+
+table {
+    border: 1px solid black;
+}
+
+.selected {
+    background-color: yellow;
 }

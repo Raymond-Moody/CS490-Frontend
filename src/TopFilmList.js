@@ -1,25 +1,30 @@
 import axios from 'axios';
 import React from 'react';
+import { ErrorContext } from './ErrorContext';
+import FilmInfo from './FilmInfo.js';
 
 export default function TopFilmList(){
 
     const [filmList, setFilmList] = React.useState([]);
     const [selectedFilm, setSelectedFilm] = React.useState({});
     const [renderData, setRenderData] = React.useState(false);
-    
+    const setError = React.useContext(ErrorContext);
+
     function getTopFilms(){
+        setError(null);
         axios
             .get("http://localhost:8000/films/top")
             .then(response => setFilmList(response.data))
-            .catch(err => console.log(err));
+            .catch(err => setError(err));
     }
 
     function getFilmData(film_id){
+        setError(null);
         return (
-        axios
-            .get(`http://localhost:8000/films/${film_id}`)
-            .then(response => setSelectedFilm(response.data))
-            .catch(err => console.log(err))
+            axios
+                .get(`http://localhost:8000/films/${film_id}`)
+                .then(response => setSelectedFilm(response.data))
+                .catch(err => setError(err))
         );
     }
 
@@ -38,7 +43,7 @@ export default function TopFilmList(){
 
     return(
         <div>
-            <div className="TopFilms" style={{display: "inline-block", verticalAlign: "top"}}>
+            <div className="TopFilms list">
                 <h1>Top 5 Movies</h1>
                 <ol>
                     {
@@ -54,26 +59,3 @@ export default function TopFilmList(){
 }
 
 
-function FilmInfo({ filmData }){
-    return (
-        <div className="FilmInfo" style={{display: "inline-block", paddingLeft: "50px"}}>
-            <h1>Film Information</h1>
-            <table>
-                <tbody>
-                    <tr><td>Title: </td><td>{filmData['title']}</td></tr>
-                    <tr><td>Description: </td><td>{filmData['description']}</td></tr>
-                    <tr><td>Language: </td><td>{filmData['language']}</td></tr>
-                    {filmData['original_language'] === null ? "" : <tr><td>Original Language:</td><td>{filmData['original_language']}</td></tr>}
-                    <tr><td>Release Year: </td><td>{filmData['release_year']}</td></tr>
-                    <tr><td>Length: </td><td>{filmData['length']} minutes</td></tr>
-                    <tr><td>Rating: </td><td>{filmData['rating']}</td></tr>
-                    <tr><td>Categories: </td><td>{filmData['categories']}</td></tr>
-                    <tr><td>Special Features: </td><td>{filmData['special_features']}</td></tr>
-                    <tr><td>Rental Duration: </td><td>{filmData['rental_duration']} days</td></tr>
-                    <tr><td>Rental Rate: </td><td>${filmData['rental_rate']}</td></tr>
-                    <tr><td>Replacement Cost: </td><td>${filmData['replacement_cost']}</td></tr>
-                </tbody>
-            </table>
-        </div>
-    );
-}
