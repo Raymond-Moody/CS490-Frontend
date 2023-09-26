@@ -154,8 +154,22 @@ function CustomerInfo({custData, setSelectedCustomer, setUrl}){
     }
 
     function returnFilm(rental_id){
-        let datetime = new Date().toISOString().slice(0, 19).replace('T', ' '); // Get current time as SQL DateTime
-        console.log(`set return_date for ${rental_id} to ${datetime}`);
+        let datetime = new Date().toISOString();
+        axios
+            .get(`http://localhost:8000/rentals/${rental_id}`)
+            .then(response => {
+                                let rental = response.data;
+                                rental['return_date'] = datetime;
+                                axios
+                                    .put(`http://localhost:8000/rentals/${rental_id}/`, rental)
+                                    //Find the index of rental in rentals and remove it to update the rental listings
+                                    .then(() => {
+                                                    setRentals(rentals.toSpliced(rentals.findIndex(r => r['rental_id'] === rental['rental_id']), 1)); 
+                                                    alert(`${custData['first_name']} ${custData['last_name']} returned ${rental['inventory']['film']['title']} successfully`);
+                                                })
+                                    .catch(err => console.log(err));
+                              })
+            .catch(err => console.log(err));
     }
 
     React.useEffect(() => {
@@ -178,14 +192,19 @@ function CustomerInfo({custData, setSelectedCustomer, setUrl}){
             </tbody></table>
             <button>Edit</button> <button onClick={deleteCust}>Delete</button>
 
-            <h2>Rentals</h2>
-            <table><tbody>
+            
             {rentals.length > 0 && 
-                rentals.map(
-                    rental => <tr key={rental['rental_id']}><td>{rental['inventory']['film']['title']}</td><td><button onClick={() => returnFilm(rental['rental_id'])}>Return</button></td></tr>
-                )
+                <>
+                <h2>Rentals</h2>
+                <table><tbody>
+                {
+                    rentals.map(
+                        rental => <tr key={rental['rental_id']}><td>{rental['inventory']['film']['title']}</td><td><button onClick={() => returnFilm(rental['rental_id'])}>Return</button></td></tr>
+                    )
+                }
+                </tbody></table>
+                </>
             }
-            </tbody></table>
         </div>
     );
 }
