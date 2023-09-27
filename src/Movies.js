@@ -13,19 +13,6 @@ export default function Movies(){
     const [url, setUrl] = React.useState(baseUrl);
     const setError = React.useContext(ErrorContext);
 
-    /*
-    function axiosQuery(url){
-        setError(null);
-        axios
-            .get(url)
-            .then(response => {
-                setSearchResult(response.data)
-            })
-            .catch(err => setError(err));
-        //console.log(searchResult);
-    }
-    */
-
     function getFilmList(query){
         if(query.trim() !== ""){
             let parameterList = [];
@@ -35,12 +22,10 @@ export default function Movies(){
             parameterList.forEach((paramValue) => {
                 urlParams = urlParams.concat(`&${param}=${paramValue}`);
             }); 
-            //axiosQuery(baseUrl.concat(urlParams));
             setUrl(baseUrl.concat(urlParams));
         }
         else{
             setError(null);
-            //axiosQuery(baseUrl);
             setUrl(baseUrl);
         }
     }
@@ -73,7 +58,6 @@ export default function Movies(){
             start: offset + 1,
             end: Math.min(searchResult['count'], offset + 15)
         })
-        //axiosQuery(url);
         setUrl(pageUrl);
     }
 

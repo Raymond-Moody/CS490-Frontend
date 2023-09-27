@@ -13,12 +13,12 @@ export default function App(){
     const [currPage, setCurrPage] = React.useState(sessionStorage.getItem("page"));
     const [err, setError] = React.useState(null);
 
+    function printError(error){
+        console.log(error);
+        return <div className='content'>{err['code']}</div>
+    }
 
     function pageSelect(){
-        if(err){
-            return <div className='content'>Error connecting to backend</div>;
-        }
-
         switch(currPage){
             case 'Home':
                 return <Home />;
@@ -37,6 +37,7 @@ export default function App(){
         <div className="App">
             <ErrorContext.Provider value={setError}>
                 <NavBar pageTitle={currPage} setPage={setCurrPage}/>
+                {err && printError(err)}
                 {pageSelect()}
             </ErrorContext.Provider>
         </div>

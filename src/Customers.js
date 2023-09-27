@@ -78,6 +78,7 @@ export default function Customers(){
         let country = event.target[5].value
         if(!fname || !lname || !email || !address || !city || !country){
             window.alert("Please fill out all fields");
+            return;
         }
         console.log(event);
         console.log(fname);
@@ -140,6 +141,7 @@ export default function Customers(){
 
 function CustomerInfo({custData, setSelectedCustomer, setUrl}){
     const [rentals, setRentals] = React.useState({});
+    const setError = React.useContext(ErrorContext);
 
     function deleteCust(){
         if(window.confirm(`Delete ${custData['first_name']} ${custData['last_name']}?\nThis cannot be undone.`)){
@@ -147,7 +149,7 @@ function CustomerInfo({custData, setSelectedCustomer, setUrl}){
             axios
                 .delete(`http://localhost:8000/customers/${custData['customer_id']}`)
                 .then(() => {setSelectedCustomer(null); setUrl("http://localhost:8000/customers")})
-                .catch(err => console.log(err));
+                .catch(err => setError(err));
         } else {
             console.log("Did not delete");
         }
@@ -160,6 +162,7 @@ function CustomerInfo({custData, setSelectedCustomer, setUrl}){
             .then(response => {
                                 let rental = response.data;
                                 rental['return_date'] = datetime;
+                                rental['last_update'] = datetime;
                                 axios
                                     .put(`http://localhost:8000/rentals/${rental_id}/`, rental)
                                     //Find the index of rental in rentals and remove it to update the rental listings
@@ -167,22 +170,23 @@ function CustomerInfo({custData, setSelectedCustomer, setUrl}){
                                                     setRentals(rentals.toSpliced(rentals.findIndex(r => r['rental_id'] === rental['rental_id']), 1)); 
                                                     alert(`${custData['first_name']} ${custData['last_name']} returned ${rental['inventory']['film']['title']} successfully`);
                                                 })
-                                    .catch(err => console.log(err));
+                                    .catch(err => setError(err));
                               })
-            .catch(err => console.log(err));
+            .catch(err => setError(err));
     }
 
     React.useEffect(() => {
         axios
             .get(`http://localhost:8000/customers/${custData['customer_id']}/rentals`)
             .then(response => setRentals(response.data))
-            .catch(err => console.log(err));
-    }, [custData]);
+            .catch(err => setError(err));
+    }, [custData, setError]);
 
     return(
         <div style={{display: "inline-block", paddingLeft: "50px"}}>
             <h1>Customer Information</h1>
             <table><tbody>
+                <tr><td>Customer ID: </td><td>{custData['customer_id']}</td></tr>
                 <tr><td>Name: </td><td>{custData['first_name']} {custData['last_name']}</td></tr>
                 <tr><td>Email: </td><td>{custData['email']}</td></tr>
                 <tr><td>Phone Number: </td><td>{custData['address']['phone']}</td></tr>

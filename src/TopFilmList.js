@@ -6,8 +6,7 @@ import FilmInfo from './FilmInfo.js';
 export default function TopFilmList(){
 
     const [filmList, setFilmList] = React.useState([]);
-    const [selectedFilm, setSelectedFilm] = React.useState({});
-    const [renderData, setRenderData] = React.useState(false);
+    const [selectedFilm, setSelectedFilm] = React.useState(null);
     const setError = React.useContext(ErrorContext);
 
     function getFilmData(film_id){
@@ -21,11 +20,10 @@ export default function TopFilmList(){
     }
 
     function handleClick(id){
-        if(selectedFilm['film_id'] === id){
-            setRenderData(!renderData);
-        } else {
+        if(!selectedFilm || selectedFilm['film_id'] !== id){
             getFilmData(id);
-            setRenderData(true);
+        } else {
+            setSelectedFilm(null);
         }
     }
 
@@ -44,12 +42,12 @@ export default function TopFilmList(){
                 <ol>
                     {
                         filmList.map(
-                            film => <li key={film['film_id']} onClick={() => handleClick(film['film_id'])} className={film['film_id'] === selectedFilm['film_id'] && renderData ? "selected" : ""}>{film['title']}</li>
+                            film => <li key={film['film_id']} onClick={() => handleClick(film['film_id'])} className={selectedFilm && film['film_id'] === selectedFilm['film_id'] ? "selected" : ""}>{film['title']}</li>
                         )
                     }
                 </ol>
             </div>
-            {renderData && <FilmInfo filmData={selectedFilm}/>}
+            {selectedFilm && <FilmInfo filmData={selectedFilm}/>}
         </div>
     );
 }

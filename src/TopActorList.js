@@ -1,18 +1,13 @@
 import axios from 'axios';
 import React from 'react';
+import { ErrorContext } from './ErrorContext';
 
 export default function TopActorList(){
 
     const [actorList, setActorList] = React.useState([]);
     const [renderData, setRenderData] = React.useState(false);
     const [selectedActor, setSelectedActor] = React.useState({});
-
-    function getTopActors(){
-        axios
-            .get("http://localhost:8000/actors/top")
-            .then(response => setActorList(response.data))
-            .catch(err => console.log(err));
-    }
+    const setError = React.useContext(ErrorContext)
 
     function handleClick(id){
         if(selectedActor['actor_id'] === id){
@@ -24,17 +19,22 @@ export default function TopActorList(){
     }
 
     function getActorData(actor_id){
+        setError(null);
         return(
             axios
                 .get(`http://localhost:8000/actors/${actor_id}`)
                 .then(response => setSelectedActor(response.data))
-                .catch(err => console.log(err))
+                .catch(err => setError(err))
         ); 
     }
 
     React.useEffect(() => {
-        getTopActors();
-    }, []);
+        setError(null);
+        axios
+            .get("http://localhost:8000/actors/top")
+            .then(response => setActorList(response.data))
+            .catch(err => setError(err));
+    }, [setError]);
 
     return(
         <div>
@@ -56,17 +56,14 @@ export default function TopActorList(){
 
 function ActorInfo({actorData}){
     const [topFilms, setTopFilms] = React.useState([]);
-    function getTopFilms(){
+    const setError = React.useContext(ErrorContext)
+
+    React.useEffect(() => {
         axios
             .get(`http://localhost:8000/actors/${actorData['actor_id']}/top-movies`)
             .then(response => setTopFilms(response.data))
-            .catch(err => console.log(err));
-    }
-    
-    React.useEffect(() => {
-        console.log(actorData);
-        getTopFilms();
-    }, [actorData]);
+            .catch(err => setError(err));
+    }, [actorData, setError]);
 
     return(
         <div style={{display: "inline-block", paddingLeft: "50px"}}>
