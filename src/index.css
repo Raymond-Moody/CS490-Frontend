@@ -71,3 +71,10 @@ table {
 label {
     margin-left: 10px;
 }
+
+.inputForm{
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: max-content max-content;
+}
+

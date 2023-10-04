@@ -25,15 +25,25 @@ export default function FilmInfo({ filmData }){
                 'last_update' : datetime
 
             }
+
             axios
                 .post(`http://localhost:8000/rentals/`, rental)
                 .then(() => {
                         alert(`Rented ${filmData['title']} to customer with ID ${custID}`);
-                        setInventory({copies : inventory['copies'] - 1})
+                        axios
+                            .get(`http://localhost:8000/films/${filmData['film_id']}/inventory`)
+                            .then(response => setInventory(response.data))
+                            .catch(err => setError(err));
                     })
                 .catch(err => {
-                            if(err['code'] === "ERR_BAD_REQUEST")
-                                alert(`Customer with ID ${custID} does not exist.`);
+                            if(err['code'] === "ERR_BAD_REQUEST"){
+                                if(err.response.data === "customer_id")
+                                    alert(`Customer with ID ${custID} does not exist.`);
+                                else if(err.response.data === "staff_id")
+                                    alert(`Staff with ID ${staffID} does not exist.`);
+                                else
+                                    setError(err);
+                            }
                             else
                                 setError(err);
                         });
@@ -61,7 +71,7 @@ export default function FilmInfo({ filmData }){
     }
 
     React.useEffect(() => {
-        setCustID(0);
+        //setCustID(0);
         axios
             .get(`http://localhost:8000/films/${filmData['film_id']}/inventory`)
             .then(response => setInventory(response.data))
@@ -89,9 +99,10 @@ export default function FilmInfo({ filmData }){
             {inventory['copies'] > 0 && 
                 <>
                 <h2>Rent this film</h2>
-                <form style={{marginTop: "10px"}} onSubmit={rent}>
+                <form className="inputForm" onSubmit={rent}>
                     <label style={{marginRight: "10px"}} htmlFor='renter_id'>Customer ID:</label>
                     <input type='text' id='renter_id' onChange={handleIDChange}/>
+                    <label style={{marginRight: "10px"}} htmlFor='staff_id'>Staff ID:</label>
                     <input type='text' id='staff_id' onChange={handleStaffChange}/>
                     <input type='submit'value='rent' />
                 </form>
