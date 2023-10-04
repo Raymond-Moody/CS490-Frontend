@@ -6,18 +6,22 @@ export default function FilmInfo({ filmData }){
     const setError = React.useContext(ErrorContext);
     const [inventory, setInventory] = React.useState({copies : 0});
     const [custID, setCustID] = React.useState(0);
+    const [staffID, setStaffID] = React.useState(0);
 
     function rent(event){
         event.preventDefault();
+        if(staffID === 0){
+            alert("Please enter a valid staff id");
+            return;
+        }
         if(custID !== 0){
-            console.log(inventory['inventory'][0]['inventory_id']);
             let datetime = new Date().toISOString();
             let rental = {
                 'rental_date' : datetime,
                 'inventory_id' : inventory['inventory'][0]['inventory_id'],
                 'customer_id' : custID, 
                 'return_date' : null,
-                'staff_id' : 1,
+                'staff_id' : staffID,
                 'last_update' : datetime
 
             }
@@ -29,7 +33,7 @@ export default function FilmInfo({ filmData }){
                     })
                 .catch(err => {
                             if(err['code'] === "ERR_BAD_REQUEST")
-                                alert("Please enter a valid customer ID");
+                                alert(`Customer with ID ${custID} does not exist.`);
                             else
                                 setError(err);
                         });
@@ -44,6 +48,15 @@ export default function FilmInfo({ filmData }){
             setCustID(id);
         } else {
             setCustID(0);
+        }
+    }
+
+    function handleStaffChange(event){
+        let id = parseInt(event.target.value);
+        if(parseInt(event.target.value)){
+            setStaffID(id);
+        } else {
+            setStaffID(0);
         }
     }
 
@@ -79,6 +92,7 @@ export default function FilmInfo({ filmData }){
                 <form style={{marginTop: "10px"}} onSubmit={rent}>
                     <label style={{marginRight: "10px"}} htmlFor='renter_id'>Customer ID:</label>
                     <input type='text' id='renter_id' onChange={handleIDChange}/>
+                    <input type='text' id='staff_id' onChange={handleStaffChange}/>
                     <input type='submit'value='rent' />
                 </form>
                 </>

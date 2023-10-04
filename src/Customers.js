@@ -145,13 +145,10 @@ function CustomerInfo({custData, setSelectedCustomer, setUrl}){
 
     function deleteCust(){
         if(window.confirm(`Delete ${custData['first_name']} ${custData['last_name']}?\nThis cannot be undone.`)){
-            console.log("Confirmed");
             axios
                 .delete(`http://localhost:8000/customers/${custData['customer_id']}`)
                 .then(() => {setSelectedCustomer(null); setUrl("http://localhost:8000/customers")})
                 .catch(err => setError(err));
-        } else {
-            console.log("Did not delete");
         }
     }
 
@@ -165,14 +162,24 @@ function CustomerInfo({custData, setSelectedCustomer, setUrl}){
                                 rental['last_update'] = datetime;
                                 axios
                                     .put(`http://localhost:8000/rentals/${rental_id}/`, rental)
-                                    //Find the index of rental in rentals and remove it to update the rental listings
                                     .then(() => {
-                                                    setRentals(rentals.toSpliced(rentals.findIndex(r => r['rental_id'] === rental['rental_id']), 1)); 
+                                                    //Update rental listings
+                                                    axios
+                                                        .get(`http://localhost:8000/customers/${custData['customer_id']}/rentals`)
+                                                        .then(response => setRentals(response.data))
+                                                        .catch(err => setError(err));
                                                     alert(`${custData['first_name']} ${custData['last_name']} returned ${rental['inventory']['film']['title']} successfully`);
                                                 })
                                     .catch(err => setError(err));
                               })
             .catch(err => setError(err));
+    }
+
+    function formatDate(date){
+        let fields = date.split("-");
+        let day = fields[2].substring(0,2);
+        let time = fields[2].substring(3,11);
+        return `${fields[1]}/${day}/${fields[0]} ${time}`;
     }
 
     React.useEffect(() => {
@@ -201,9 +208,13 @@ function CustomerInfo({custData, setSelectedCustomer, setUrl}){
                 <>
                 <h2>Rentals</h2>
                 <table><tbody>
+                <tr><th>Title</th><th>Return date</th></tr>
                 {
                     rentals.map(
-                        rental => <tr key={rental['rental_id']}><td>{rental['inventory']['film']['title']}</td><td><button onClick={() => returnFilm(rental['rental_id'])}>Return</button></td></tr>
+                        rental => <tr key={rental['rental_id']}>
+                                    <td>{rental['inventory']['film']['title']}</td>
+                                    <td>{rental['return_date'] === null ? <button onClick={() => returnFilm(rental['rental_id'])}>Return</button> : formatDate(rental['return_date'])}</td>
+                                  </tr>
                     )
                 }
                 </tbody></table>
