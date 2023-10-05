@@ -70,18 +70,40 @@ export default function Customers(){
 
     function createCustomer(event){
         event.preventDefault();
-        let fname = event.target[0].value
-        let lname = event.target[1].value
-        let email = event.target[2].value
-        let address = event.target[3].value
-        let city = event.target[4].value
-        let country = event.target[5].value
-        if(!fname || !lname || !email || !address || !city || !country){
-            window.alert("Please fill out all fields");
+        let fname = event.target[0].value;
+        let lname = event.target[1].value;
+        let email = event.target[2].value;
+        let phone = event.target[3].value;
+        let address = event.target[4].value;
+        let address2 = event.target[5].value ? event.target[5].value : null;
+        let district = event.target[6].value;
+        let zip = event.target[7].value ? event.target[7].value : null;
+        let city = event.target[8].value;
+        let country = event.target[9].value;
+        let create_date = new Date().toISOString();
+        if(!fname || !lname || !email || !address || !district || !city || !country){
+            window.alert("Please fill out all required fields");
             return;
         }
-        console.log(event);
-        console.log(fname);
+
+        let new_customer = {
+            'store_id' : 1,
+            'first_name' : fname,
+            'last_name' : lname,
+            'email' : email,
+            'address' : address,
+            'address2' : address2,
+            'district' : district,
+            'postal_code' : zip,
+            'phone' : phone,
+            'city' : city,
+            'country' : country,
+            'create_date' : create_date
+        }
+
+        axios
+            .post(`http://localhost:8000/customers/`, new_customer)
+            .catch(err => setError(err));
     }
 
     React.useEffect(() => {
@@ -124,15 +146,17 @@ export default function Customers(){
             {selectedCustomer && <CustomerInfo custData={selectedCustomer} setSelectedCustomer={setSelectedCustomer} setUrl={setUrl}/>}
             <br/>
             <h1>Create New Customer</h1>
-            <form onSubmit={createCustomer}>
-                <table><tbody>
-                    <tr><td>First Name:</td><td><input type='text' style={{backgroundColor : "transparent"}}/></td></tr>
-                    <tr><td>Last Name:</td><td><input type='text' style={{backgroundColor : "transparent"}}/></td></tr>
-                    <tr><td>Email:</td><td><input type='text' style={{backgroundColor : "transparent"}}/></td></tr>
-                    <tr><td>Address:</td><td><input type='text' style={{backgroundColor : "transparent"}}/></td></tr>
-                    <tr><td>City:</td><td><input type='text' style={{backgroundColor : "transparent"}}/></td></tr>
-                    <tr><td>Country:</td><td><input type='text' style={{backgroundColor : "transparent"}}/></td></tr>
-                </tbody></table>
+            <form className="inputForm" onSubmit={createCustomer}>
+                <label>First Name:*</label><input type='text' />
+                <label>Last Name:*</label><input type='text' />
+                <label>Email:*</label><input type='text' />
+                <label>Phone Number:</label><input type='text' />
+                <label>Address:*</label><input type='text' />
+                <label>Address Line 2:</label><input type='text' />
+                <label>District:*</label><input type='text' />
+                <label>Zip Code:</label><input type='text' />
+                <label>City:*</label><input type='text' />
+                <label>Country:*</label><input type='text' />
                 <input type='submit' value='Create Customer'/>
             </form>
         </div>

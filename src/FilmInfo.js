@@ -22,8 +22,6 @@ export default function FilmInfo({ filmData }){
                 'customer_id' : custID, 
                 'return_date' : null,
                 'staff_id' : staffID,
-                'last_update' : datetime
-
             }
 
             axios

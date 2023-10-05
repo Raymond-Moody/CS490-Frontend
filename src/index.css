@@ -78,3 +78,11 @@ label {
     grid-template-columns: max-content max-content;
 }
 
+.inputForm > label{
+    text-align: right;
+    margin-right: 5px;
+}
+
+.error {
+    color: red;
+}

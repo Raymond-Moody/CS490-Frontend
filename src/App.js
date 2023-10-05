@@ -7,15 +7,24 @@ import {ErrorContext} from './ErrorContext';
 
 
 export default function App(){
-    if(!sessionStorage.getItem("page"))
+    if(navigator.cookieEnabled && !sessionStorage.getItem("page"))
         sessionStorage.setItem("page", "Home");
 
-    const [currPage, setCurrPage] = React.useState(sessionStorage.getItem("page"));
+    const [currPage, setCurrPage] = React.useState(navigator.cookieEnabled ? sessionStorage.getItem("page") : "Home");
     const [err, setError] = React.useState(null);
 
     function printError(error){
-        console.log(error);
-        return <div className='content'>{err['code']}</div>
+        let msg = '';
+        //console.log(error);
+        switch(error['code']){
+            case 'ERR_NETWORK':
+                msg = "Could not connect to backend.";
+                break;
+            default:
+                msg = error['code'];
+                break;
+        }
+        return <div className='content error'>{msg}</div>
     }
 
     function pageSelect(){

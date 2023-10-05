@@ -7,7 +7,8 @@ export default function NavBar({pageTitle, setPage}){
 
     function setCurrPage(page){
         setError(null);
-        sessionStorage.setItem("page", page);
+        if(navigator.cookieEnabled)
+            sessionStorage.setItem("page", page);
         setPage(page);
     }
     
