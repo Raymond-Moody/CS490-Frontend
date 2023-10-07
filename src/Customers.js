@@ -91,13 +91,17 @@ export default function Customers(){
             'first_name' : fname,
             'last_name' : lname,
             'email' : email,
-            'address' : address,
-            'address2' : address2,
-            'district' : district,
-            'postal_code' : zip,
-            'phone' : phone,
-            'city' : city,
-            'country' : country,
+            'address' : {
+                          'address' : address,
+                          'address2' : address2,
+                          'district' : district,
+                          'postal_code' : zip,
+                          'phone' : phone,
+                          'city' : {
+                                     'city' : city,
+                                     'country' : {'country' : country}
+                                   }
+                        },
             'create_date' : create_date
         }
 
