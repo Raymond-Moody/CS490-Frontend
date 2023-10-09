@@ -27,9 +27,10 @@ nav {
     background-color: blue;
 }
 
-nav>p {
+nav>* {
     text-align: center;
     color: white;
+    text-decoration: none;
 }
 
 li, td {

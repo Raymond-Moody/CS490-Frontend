@@ -11,6 +11,7 @@ export default function Customers(){
     const [lastName, setLastName] = React.useState("");
     const [custID, setCustID] = React.useState(0);
     const [url, setUrl] = React.useState(baseUrl);
+    const [update, setUpdate] = React.useState(0);
     const setError = React.useContext(ErrorContext);
 
     function changePage(dir){
@@ -72,7 +73,7 @@ export default function Customers(){
         event.preventDefault();
         let fname = event.target[0].value;
         let lname = event.target[1].value;
-        let email = event.target[2].value;
+        let email = event.target[2].value ? event.target[2].value : null;
         let phone = event.target[3].value;
         let address = event.target[4].value;
         let address2 = event.target[5].value ? event.target[5].value : null;
@@ -81,13 +82,12 @@ export default function Customers(){
         let city = event.target[8].value;
         let country = event.target[9].value;
         let create_date = new Date().toISOString();
-        if(!fname || !lname || !email || !address || !district || !city || !country){
+        if(!fname || !lname || !address || !district || !city || !country || !phone){
             window.alert("Please fill out all required fields");
             return;
         }
 
         let new_customer = {
-            'store_id' : 1,
             'first_name' : fname,
             'last_name' : lname,
             'email' : email,
@@ -107,7 +107,9 @@ export default function Customers(){
 
         axios
             .post(`http://localhost:8000/customers/`, new_customer)
-            .catch(err => setError(err));
+            .catch(err => {
+                console.log(err['response']['data']);
+            });
     }
 
     React.useEffect(() => {
@@ -117,7 +119,7 @@ export default function Customers(){
                 setSearchResult(response.data)
             })
             .catch(err => setError(err));
-    }, [url, setError])
+    }, [url, setError, update])
 
     return(
         <div className='content'>
@@ -147,14 +149,14 @@ export default function Customers(){
                 {searchResult['previous'] && <button onClick={() => changePage("prev")}>&lt; Prev</button>}
                 {searchResult['next'] && <button onClick={() => changePage("next")}>Next &gt;</button>}
             </div>
-            {selectedCustomer && <CustomerInfo custData={selectedCustomer} setSelectedCustomer={setSelectedCustomer} setUrl={setUrl}/>}
+            {selectedCustomer && <CustomerInfo custData={selectedCustomer} setSelectedCustomer={setSelectedCustomer} setUrl={setUrl} setUpdate={setUpdate}/>}
             <br/>
             <h1>Create New Customer</h1>
             <form className="inputForm" onSubmit={createCustomer}>
                 <label>First Name:*</label><input type='text' />
                 <label>Last Name:*</label><input type='text' />
-                <label>Email:*</label><input type='text' />
-                <label>Phone Number:</label><input type='text' />
+                <label>Email:</label><input type='text' />
+                <label>Phone Number:*</label><input type='text' />
                 <label>Address:*</label><input type='text' />
                 <label>Address Line 2:</label><input type='text' />
                 <label>District:*</label><input type='text' />
@@ -167,8 +169,7 @@ export default function Customers(){
     );
 }
 
-function CustomerInfo({custData, setSelectedCustomer, setUrl}){
-    const [rentals, setRentals] = React.useState({});
+function CustomerInfo({custData, setSelectedCustomer, setUrl, setUpdate}){
     const setError = React.useContext(ErrorContext);
 
     function deleteCust(){
@@ -191,12 +192,9 @@ function CustomerInfo({custData, setSelectedCustomer, setUrl}){
                                 axios
                                     .put(`http://localhost:8000/rentals/${rental_id}/`, rental)
                                     .then(() => {
-                                                    //Update rental listings
-                                                    axios
-                                                        .get(`http://localhost:8000/customers/${custData['customer_id']}/rentals`)
-                                                        .then(response => setRentals(response.data))
-                                                        .catch(err => setError(err));
-                                                    alert(`${custData['first_name']} ${custData['last_name']} returned ${rental['inventory']['film']['title']} successfully`);
+                                                    setUpdate(update => update+1);
+                                                    setSelectedCustomer(null);
+                                                    alert(`${custData['first_name']} ${custData['last_name']} returned ${rental['inventory']['film']} successfully`);
                                                 })
                                     .catch(err => setError(err));
                               })
@@ -209,13 +207,6 @@ function CustomerInfo({custData, setSelectedCustomer, setUrl}){
         let time = fields[2].substring(3,11);
         return `${fields[1]}/${day}/${fields[0]} ${time}`;
     }
-
-    React.useEffect(() => {
-        axios
-            .get(`http://localhost:8000/customers/${custData['customer_id']}/rentals`)
-            .then(response => setRentals(response.data))
-            .catch(err => setError(err));
-    }, [custData, setError]);
 
     return(
         <div style={{display: "inline-block", paddingLeft: "50px"}}>
@@ -232,15 +223,15 @@ function CustomerInfo({custData, setSelectedCustomer, setUrl}){
             <button>Edit</button> <button onClick={deleteCust}>Delete</button>
 
             
-            {rentals.length > 0 && 
+            {custData['rentals'].length > 0 && 
                 <>
                 <h2>Rentals</h2>
                 <table><tbody>
                 <tr><th>Title</th><th>Return date</th></tr>
                 {
-                    rentals.map(
+                    custData['rentals'].map(
                         rental => <tr key={rental['rental_id']}>
-                                    <td>{rental['inventory']['film']['title']}</td>
+                                    <td>{rental['inventory']['film']}</td>
                                     <td>{rental['return_date'] === null ? <button onClick={() => returnFilm(rental['rental_id'])}>Return</button> : formatDate(rental['return_date'])}</td>
                                   </tr>
                     )

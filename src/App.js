@@ -35,8 +35,6 @@ export default function App(){
                 return <Movies />;
             case 'Customers':
                 return <Customers />;
-            case 'Report':
-                return <p>Report page</p>;
             default:
                 return <Home />;
         }
