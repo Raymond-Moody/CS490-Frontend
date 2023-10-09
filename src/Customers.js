@@ -112,6 +112,7 @@ export default function Customers(){
             });
     }
 
+
     React.useEffect(() => {
         axios
             .get(url)
@@ -170,6 +171,7 @@ export default function Customers(){
 }
 
 function CustomerInfo({custData, setSelectedCustomer, setUrl, setUpdate}){
+    const [editing, setEditing] = React.useState(false);
     const setError = React.useContext(ErrorContext);
 
     function deleteCust(){
@@ -208,21 +210,84 @@ function CustomerInfo({custData, setSelectedCustomer, setUrl, setUpdate}){
         return `${fields[1]}/${day}/${fields[0]} ${time}`;
     }
 
-    return(
-        <div style={{display: "inline-block", paddingLeft: "50px"}}>
-            <h1>Customer Information</h1>
-            <table><tbody>
-                <tr><td>Customer ID: </td><td>{custData['customer_id']}</td></tr>
-                <tr><td>Name: </td><td>{custData['first_name']} {custData['last_name']}</td></tr>
-                <tr><td>Email: </td><td>{custData['email']}</td></tr>
-                <tr><td>Phone Number: </td><td>{custData['address']['phone']}</td></tr>
-                <tr><td>Address: </td><td>{custData['address']['address']}, {custData['address']['district']}, {custData['address']['postal_code']}</td></tr>
-                <tr><td>City: </td><td>{custData['address']['city']['city']}</td></tr>
-                <tr><td>Country: </td><td>{custData['address']['city']['country']['country']}</td></tr>
-            </tbody></table>
-            <button>Edit</button> <button onClick={deleteCust}>Delete</button>
+    function editCustomer(event){
+        event.preventDefault();
+        let addressChanged = false;
+        let datetime = new Date().toISOString();
+        let data = {};
+        let newAddress = {};
+        for (let i = 0; i < 3; i++){
+            if(event.target[i].value.trim()){
+                data[event.target[i].name] = event.target[i].value.trim();
+            }
+        }
+        for (let i = 3; i < 8; i++){
+            if(event.target[i].value.trim()){
+                newAddress[event.target[i].name] = event.target[i].value.trim();
+                addressChanged = true;
+            } else {
+                newAddress[event.target[i].name] = event.target[i].placeholder ? event.target[i].placeholder : null;
+            }
+        }
 
-            
+        newAddress['city'] = {
+                              'city': event.target[8].value.trim() ? event.target.value[8].trim() : event.target[8].placeholder,
+                              'country' : { 'country' : event.target[9].value.trim() ? event.target[9].value.trim() : event.target[9].placeholder}
+                             };
+
+        if(event.target[8].value.trim() || event.target[9].value.trim())
+            addressChanged = true;
+
+        if(addressChanged){
+            data['address'] = newAddress;
+        }
+
+        if(Object.keys(data).length !== 0){
+            data['last_update'] = datetime;
+            axios
+                .patch(`http://localhost:8000/customers/${custData['customer_id']}/`, data)
+                .then(response => console.log(response))
+                .catch(err => console.log(err));
+            console.log(data);
+        } else {
+            console.log('no changes.')
+        }
+    }
+
+    return(
+            <div style={{display: "inline-block", paddingLeft: "50px"}}>
+            {editing 
+            ? <>
+                <h1>Edit Customer Information</h1>
+                <form className='inputForm' onSubmit={editCustomer}>
+                    <label>First Name:</label><input type='text' name='first_name' placeholder={custData['first_name']}/>
+                    <label>Last Name:</label><input type='text' name='last_name' placeholder={custData['last_name']}/>
+                    <label>Email:</label><input type='text' name='email' placeholder={custData['email']}/>
+                    <label>Phone Number:</label><input type='text' name='phone' placeholder={custData['address']['phone']}/>
+                    <label>Address:</label><input type='text' name='address' placeholder={custData['address']['address']}/>
+                    <label>Address Line 2:</label><input type='text' name='address2' placeholder={custData['address']['address2']} />
+                    <label>District:</label><input type='text' name='district' placeholder={custData['address']['district']}/>
+                    <label>Zip Code:</label><input type='text' name='postal_code' placeholder={custData['address']['postal_code']} />
+                    <label>City:</label><input type='text' name='city' placeholder={custData['address']['city']['city']}/>
+                    <label>Country:</label><input type='text' name='country' placeholder={custData['address']['city']['country']['country']}/>
+                    <button onClick={() => setEditing(false)}>Cancel</button><input type='submit' value='Edit Customer'/>
+                </form>
+            </> 
+            :<>
+                <h1>Customer Information</h1>
+                <table><tbody>
+                    <tr><td>Customer ID: </td><td>{custData['customer_id']}</td></tr>
+                    <tr><td>Name: </td><td>{custData['first_name']} {custData['last_name']}</td></tr>
+                    <tr><td>Email: </td><td>{custData['email']}</td></tr>
+                    <tr><td>Phone Number: </td><td>{custData['address']['phone']}</td></tr>
+                    <tr><td>Address: </td><td>{custData['address']['address']}, {custData['address']['district']}, {custData['address']['postal_code']}</td></tr>
+                    <tr><td>City: </td><td>{custData['address']['city']['city']}</td></tr>
+                    <tr><td>Country: </td><td>{custData['address']['city']['country']['country']}</td></tr>
+                </tbody></table>
+                <button onClick={() => setEditing(true)}>Edit</button> <button onClick={deleteCust}>Delete</button>
+            </>
+            }
+
             {custData['rentals'].length > 0 && 
                 <>
                 <h2>Rentals</h2>
