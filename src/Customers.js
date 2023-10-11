@@ -267,6 +267,7 @@ function CustomerInfo({custData, setSelectedCustomer, setUrl, setUpdate, objToAr
             axios
                 .patch(`http://localhost:8000/customers/${custData['customer_id']}/`, data)
                 .then(response => {
+                    setError(null);
                     alert(`Updated customer ${response.data['customer_id']}`);
                     setSelectedCustomer(null); 
                     setUrl(`http://localhost:8000/customers/?&customer_id=${response.data['customer_id']}&`);
