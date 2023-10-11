@@ -14,17 +14,24 @@ export default function App(){
     const [err, setError] = React.useState(null);
 
     function printError(error){
-        let msg = '';
-        //console.log(error);
-        switch(error['code']){
-            case 'ERR_NETWORK':
-                msg = "Could not connect to backend.";
-                break;
-            default:
-                msg = error['code'];
-                break;
+        if(Array.isArray(error)){
+            return (
+                     error.map(
+                         errText => <div className='content error'>{errText}</div>
+                     )
+                   );
+        } else {
+            let msg = '';
+            switch(error['code']){
+                case 'ERR_NETWORK':
+                    msg = "Could not connect to backend.";
+                    break;
+                default:
+                    msg = error['code'];
+                    break;
+            }
+            return <div className='content error'>{msg}</div>
         }
-        return <div className='content error'>{msg}</div>
     }
 
     function pageSelect(){

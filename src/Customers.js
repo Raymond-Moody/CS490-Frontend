@@ -52,11 +52,9 @@ export default function Customers(){
         switch(event.target.id){
             case 'first_name':
                 setFirstName(event.target.value.trim());
-                console.log(firstName);
                 break;
             case 'last_name':
                 setLastName(event.target.value.trim());
-                console.log(lastName);
                 break;
              case 'customer_id':
                 if(parseInt(event.target.value))
@@ -71,19 +69,58 @@ export default function Customers(){
 
     function createCustomer(event){
         event.preventDefault();
-        let fname = event.target[0].value;
-        let lname = event.target[1].value;
-        let email = event.target[2].value ? event.target[2].value : null;
-        let phone = event.target[3].value;
-        let address = event.target[4].value;
-        let address2 = event.target[5].value ? event.target[5].value : null;
-        let district = event.target[6].value;
-        let zip = event.target[7].value ? event.target[7].value : null;
-        let city = event.target[8].value;
-        let country = event.target[9].value;
+        let fname = event.target[0].value.trim();
+        let lname = event.target[1].value.trim();
+        let email = event.target[2].value.trim() ? event.target[2].value.trim() : null;
+        let phone = event.target[3].value.trim();
+        let address = event.target[4].value.trim();
+        let address2 = event.target[5].value.trim() ? event.target[5].value.trim() : null;
+        let district = event.target[6].value.trim();
+        let zip = event.target[7].value.trim() ? event.target[7].value.trim() : null;
+        let city = event.target[8].value.trim();
+        let country = event.target[9].value.trim();
         let create_date = new Date().toISOString();
+        let errText1 = '';
+        let errText2 = '';
+        let errText3 = '';
+        let errText4 = '';
         if(!fname || !lname || !address || !district || !city || !country || !phone){
             window.alert("Please fill out all required fields");
+            return;
+        }
+
+        if(address.length > 50) 
+            errText1 = 'Address';
+        if(address2 && address2.length > 50)
+            errText1 = errText1 ? errText1.concat(', Address Line 2') : 'Address Line 2';
+        if(city.length > 50) 
+            errText1 = errText1 ? errText1.concat(', City') : 'City' ;
+        if(country.length > 50) 
+            errText1 = errText1 ? errText1.concat(', Country') : 'Country' ;
+        if(email && email.length > 50) 
+            errText1 = errText1 ? errText1.concat(', Email') : 'Email' ;
+        if(errText1)
+            errText1 = "Fields '" + errText1 + "' cannot be more than 50 characters.\n";
+
+        if(fname.length > 45)
+            errText2 = "First Name"
+        if(lname.length > 45)
+            errText2 = errText2 ? errText2 + ", Last Name" : "Last Name"
+        if(errText2)
+            errText2 = "Fields '" + errText2 + "' cannot be more than 45 characters.\n"
+
+        if(district.length > 20)
+            errText3 += "District";
+        if(phone.length > 20)
+            errText3 = errText3 ? errText3.concat(', Phone') : 'Phone';
+        if(errText3)
+            errText3 = "Fields '" + errText3 +"' cannot be more than 20 characters.\n";
+
+        if(zip && zip.length > 10)
+            errText4 = "Field 'Postal Code' cannot be more than 10 characters.\n";
+
+        if(errText1 || errText2 || errText3){
+            setError([errText1,errText2,errText3,errText4]);
             return;
         }
 
@@ -102,13 +139,22 @@ export default function Customers(){
                                      'country' : {'country' : country}
                                    }
                         },
-            'create_date' : create_date
+            'create_date' : create_date,
+            'rentals' : []
         }
 
         axios
             .post(`http://localhost:8000/customers/`, new_customer)
+            .then(response => {
+                setError(null);
+                alert(`Created customer with ID ${response['data']['customer_id']}.`);
+                event.target.reset()
+            })
             .catch(err => {
-                console.log(err['response']['data']);
+                if('email' in err['response']['data'])
+                    alert('Please enter a valid email address.');
+                else
+                    alert(err);
             });
     }
 
@@ -231,7 +277,7 @@ function CustomerInfo({custData, setSelectedCustomer, setUrl, setUpdate}){
         }
 
         newAddress['city'] = {
-                              'city': event.target[8].value.trim() ? event.target.value[8].trim() : event.target[8].placeholder,
+                              'city': event.target[8].value.trim() ? event.target[8].value.trim() : event.target[8].placeholder,
                               'country' : { 'country' : event.target[9].value.trim() ? event.target[9].value.trim() : event.target[9].placeholder}
                              };
 
@@ -246,11 +292,8 @@ function CustomerInfo({custData, setSelectedCustomer, setUrl, setUpdate}){
             data['last_update'] = datetime;
             axios
                 .patch(`http://localhost:8000/customers/${custData['customer_id']}/`, data)
-                .then(response => console.log(response))
+                .then(response => alert(`Updated customer ${response.data['customer_id']}`))
                 .catch(err => console.log(err));
-            console.log(data);
-        } else {
-            console.log('no changes.')
         }
     }
 
