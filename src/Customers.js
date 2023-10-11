@@ -52,7 +52,8 @@ export default function Customers(){
         if(custID !== 0){
             searchUrl = searchUrl.concat(`&customer_id=${custID}`);
         }
-        setUrl(searchUrl)
+        setTableCount({start: 1, end: 15});
+        setUrl(searchUrl);
     }
 
     function handleClick(cust){
@@ -136,7 +137,7 @@ export default function Customers(){
         axios
             .get(url)
             .then(response => {
-                setSearchResult(response.data)
+                setSearchResult(response.data);
             })
             .catch(err => setError(err));
     }, [url, setError, update])
@@ -265,7 +266,11 @@ function CustomerInfo({custData, setSelectedCustomer, setUrl, setUpdate, objToAr
             data['last_update'] = datetime;
             axios
                 .patch(`http://localhost:8000/customers/${custData['customer_id']}/`, data)
-                .then(response => alert(`Updated customer ${response.data['customer_id']}`))
+                .then(response => {
+                    alert(`Updated customer ${response.data['customer_id']}`);
+                    setSelectedCustomer(null); 
+                    setUrl(`http://localhost:8000/customers/?&customer_id=${response.data['customer_id']}&`);
+                })
                 .catch(err => {
                     console.log(err);
                     setError(objToArray(err['response']['data']));
