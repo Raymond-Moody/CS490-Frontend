@@ -14,6 +14,21 @@ export default function Customers(){
     const [update, setUpdate] = React.useState(0);
     const setError = React.useContext(ErrorContext);
 
+    function objToArray(obj){
+        let retArray = [];
+        Object.keys(obj).forEach((key) => {
+            let val = obj[key];
+            if(typeof val === 'object' && !Array.isArray(val)){
+                val = objToArray(val);
+                for(let i = 0; i < val.length; i++)
+                    retArray.push(val[i]);
+            } else {
+                retArray.push(`Field ${key} : ${val[0]}`);
+            }
+        });
+        return retArray;
+    }
+
     function changePage(dir){
         let pageUrl = dir === "next" ? searchResult['next'] : searchResult['previous'];
         let offset = parseInt(pageUrl.substring(pageUrl.indexOf("offset") + 7)) || 0;
@@ -80,47 +95,8 @@ export default function Customers(){
         let city = event.target[8].value.trim();
         let country = event.target[9].value.trim();
         let create_date = new Date().toISOString();
-        let errText1 = '';
-        let errText2 = '';
-        let errText3 = '';
-        let errText4 = '';
         if(!fname || !lname || !address || !district || !city || !country || !phone){
             window.alert("Please fill out all required fields");
-            return;
-        }
-
-        if(address.length > 50) 
-            errText1 = 'Address';
-        if(address2 && address2.length > 50)
-            errText1 = errText1 ? errText1.concat(', Address Line 2') : 'Address Line 2';
-        if(city.length > 50) 
-            errText1 = errText1 ? errText1.concat(', City') : 'City' ;
-        if(country.length > 50) 
-            errText1 = errText1 ? errText1.concat(', Country') : 'Country' ;
-        if(email && email.length > 50) 
-            errText1 = errText1 ? errText1.concat(', Email') : 'Email' ;
-        if(errText1)
-            errText1 = "Fields '" + errText1 + "' cannot be more than 50 characters.\n";
-
-        if(fname.length > 45)
-            errText2 = "First Name"
-        if(lname.length > 45)
-            errText2 = errText2 ? errText2 + ", Last Name" : "Last Name"
-        if(errText2)
-            errText2 = "Fields '" + errText2 + "' cannot be more than 45 characters.\n"
-
-        if(district.length > 20)
-            errText3 += "District";
-        if(phone.length > 20)
-            errText3 = errText3 ? errText3.concat(', Phone') : 'Phone';
-        if(errText3)
-            errText3 = "Fields '" + errText3 +"' cannot be more than 20 characters.\n";
-
-        if(zip && zip.length > 10)
-            errText4 = "Field 'Postal Code' cannot be more than 10 characters.\n";
-
-        if(errText1 || errText2 || errText3){
-            setError([errText1,errText2,errText3,errText4]);
             return;
         }
 
@@ -151,10 +127,7 @@ export default function Customers(){
                 event.target.reset()
             })
             .catch(err => {
-                if('email' in err['response']['data'])
-                    alert('Please enter a valid email address.');
-                else
-                    alert(err);
+                setError(objToArray(err['response']['data']));
             });
     }
 
@@ -196,7 +169,7 @@ export default function Customers(){
                 {searchResult['previous'] && <button onClick={() => changePage("prev")}>&lt; Prev</button>}
                 {searchResult['next'] && <button onClick={() => changePage("next")}>Next &gt;</button>}
             </div>
-            {selectedCustomer && <CustomerInfo custData={selectedCustomer} setSelectedCustomer={setSelectedCustomer} setUrl={setUrl} setUpdate={setUpdate}/>}
+            {selectedCustomer && <CustomerInfo custData={selectedCustomer} setSelectedCustomer={setSelectedCustomer} setUrl={setUrl} setUpdate={setUpdate} objToArray={objToArray}/>}
             <br/>
             <h1>Create New Customer</h1>
             <form className="inputForm" onSubmit={createCustomer}>
@@ -216,7 +189,7 @@ export default function Customers(){
     );
 }
 
-function CustomerInfo({custData, setSelectedCustomer, setUrl, setUpdate}){
+function CustomerInfo({custData, setSelectedCustomer, setUrl, setUpdate, objToArray}){
     const [editing, setEditing] = React.useState(false);
     const setError = React.useContext(ErrorContext);
 
@@ -293,7 +266,10 @@ function CustomerInfo({custData, setSelectedCustomer, setUrl, setUpdate}){
             axios
                 .patch(`http://localhost:8000/customers/${custData['customer_id']}/`, data)
                 .then(response => alert(`Updated customer ${response.data['customer_id']}`))
-                .catch(err => console.log(err));
+                .catch(err => {
+                    console.log(err);
+                    setError(objToArray(err['response']['data']));
+                });
         }
     }
 
